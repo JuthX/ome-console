@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../_components/ConfirmDialog";
+import { useModalA11y } from "../_lib/useModalA11y";
 import type { KeyPreset } from "@/db/types";
 
 const POLL_MS = 5000;
@@ -51,6 +52,7 @@ export default function AccessPage() {
   const [confirmRevoke, setConfirmRevoke] = useState<KeyRow | null>(null);
   const [confirmDeleteKey, setConfirmDeleteKey] = useState<KeyRow | null>(null);
   const [qrFor, setQrFor] = useState<{ label: string; dataUrl: string } | null>(null);
+  const qrModal = useModalA11y(qrFor !== null, () => setQrFor(null));
 
   const [presets, setPresets] = useState<KeyPreset[]>([]);
   const [showSavePreset, setShowSavePreset] = useState(false);
@@ -264,7 +266,8 @@ export default function AccessPage() {
           New key
         </button>
       </div>
-      <table>
+      <div className="table-wrap">
+        <table>
         <thead>
           <tr>
             <th>Name</th>
@@ -310,7 +313,8 @@ export default function AccessPage() {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
 
       {showKeyForm && (
         <div className="pane" style={{ marginTop: 12 }}>
@@ -442,7 +446,8 @@ export default function AccessPage() {
       )}
 
       {links.length > 0 && (
-        <table style={{ marginTop: 12 }}>
+        <div className="table-wrap">
+          <table style={{ marginTop: 12 }}>
           <thead>
             <tr>
               <th>Stream</th>
@@ -472,7 +477,8 @@ export default function AccessPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       <ConfirmDialog
@@ -513,8 +519,10 @@ export default function AccessPage() {
 
       {qrFor && (
         <div className="modal-backdrop" onClick={() => setQrFor(null)}>
-          <div className="pane modal" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>{qrFor.label}</h3>
+          <div className="pane modal" {...qrModal.panelProps} onClick={(e) => e.stopPropagation()}>
+            <h3 id={qrModal.titleId} style={{ marginTop: 0 }}>
+              {qrFor.label}
+            </h3>
             {/* eslint-disable-next-line @next/next/no-img-element -- a generated data: URL, not a static asset */}
             <img src={qrFor.dataUrl} alt="QR code" style={{ width: "100%" }} />
           </div>

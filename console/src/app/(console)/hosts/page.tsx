@@ -167,7 +167,8 @@ export default function HostsPage() {
           <span className="chip warn">{vhostsError}</span>
         </div>
       ) : (
-        <table>
+        <div className="table-wrap">
+          <table>
           <thead>
             <tr>
               <th>Host</th>
@@ -201,7 +202,8 @@ export default function HostsPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
       {reloadMessage && (
         <div className="pane" style={{ marginTop: 10 }}>
@@ -259,6 +261,9 @@ export default function HostsPage() {
                       <span
                         className={`sw${isDeclared ? " ro" : ""}${inputToggles.has(row.key) ? " on" : ""}`}
                         onClick={isDeclared ? undefined : () => toggle(inputToggles, setInputToggles, row.key)}
+                        {...(isDeclared
+                          ? {}
+                          : { role: "switch", "aria-checked": inputToggles.has(row.key), "aria-label": row.label })}
                       />
                     </Fragment>
                   ))}
@@ -281,6 +286,9 @@ export default function HostsPage() {
                       <span
                         className={`sw${isDeclared ? " ro" : ""}${outputToggles.has(row.key) ? " on" : ""}`}
                         onClick={isDeclared ? undefined : () => toggle(outputToggles, setOutputToggles, row.key)}
+                        {...(isDeclared
+                          ? {}
+                          : { role: "switch", "aria-checked": outputToggles.has(row.key), "aria-label": row.label })}
                       />
                     </Fragment>
                   ))}

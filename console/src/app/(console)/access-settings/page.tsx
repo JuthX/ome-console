@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLiveSnapshot } from "../_lib/LiveSnapshotProvider";
+import { useModalA11y } from "../_lib/useModalA11y";
 import type { VhostInfo } from "@/ome-client/types";
 
 const POLL_MS = 5000;
@@ -32,6 +33,7 @@ export default function AccessSettingsPage() {
   // since Sprint 8a's own security fix) — stated honestly below, not
   // oversold as more than it is.
   const [engineChecked, setEngineChecked] = useState(false);
+  const rotateModal = useModalA11y(showRotate, () => setShowRotate(false));
 
   useEffect(() => {
     let cancelled = false;
@@ -157,8 +159,10 @@ export default function AccessSettingsPage() {
 
       {showRotate && (
         <div className="modal-backdrop" onClick={() => setShowRotate(false)}>
-          <div className="pane modal" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>Rotate SignedPolicy secret</h3>
+          <div className="pane modal" style={{ maxWidth: 560 }} {...rotateModal.panelProps} onClick={(e) => e.stopPropagation()}>
+            <h3 id={rotateModal.titleId} style={{ marginTop: 0 }}>
+              Rotate SignedPolicy secret
+            </h3>
             <p className="lead" style={{ fontSize: 13 }}>
               1. New secret (copy it):
             </p>
