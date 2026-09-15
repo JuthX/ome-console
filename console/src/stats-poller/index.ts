@@ -7,6 +7,12 @@ import type { BitrateSample, LiveSnapshot, StreamSnapshot } from "./types";
 // is that poller — one per server process, fanning out over SSE (src/app/api/live).
 const POLL_INTERVAL_MS = 3000;
 const HISTORY_WINDOW_MS = 10 * 60 * 1000; // 10 min, per PRD's stream-drawer sparkline
+// listAllStreams() can fail on its own while getVersion() keeps succeeding
+// (apiOk stays true) — the poller deliberately keeps the last known-good
+// snapshot in that case (see the comment in pollOnce()) rather than wiping
+// it, so this many consecutive failures (~9s) is the threshold before we
+// start telling consumers the data on screen may be stale.
+const STALE_AFTER_FAILURES = 3;
 
 // Next.js bundles instrumentation.ts (which starts the poller) and each route
 // handler (which reads it) as separate module graphs — a plain module-level
@@ -18,6 +24,7 @@ interface PollerState {
   latest: LiveSnapshot;
   history: Map<string, BitrateSample[]>;
   started: boolean;
+  consecutiveStreamsFailures: number;
 }
 
 declare global {
@@ -32,11 +39,20 @@ function getState(): PollerState {
       emitter,
       latest: {
         updatedAt: 0,
-        server: { apiOk: false, version: null, cpuLoadPercent: null, throughputIn: 0, throughputOut: 0, totalSessions: 0 },
+        server: {
+          apiOk: false,
+          version: null,
+          cpuLoadPercent: null,
+          throughputIn: 0,
+          throughputOut: 0,
+          totalSessions: 0,
+          streamsStale: false,
+        },
         streams: [],
       },
       history: new Map(),
       started: false,
+      consecutiveStreamsFailures: 0,
     };
   }
   return globalThis.__omePoller;
@@ -74,9 +90,18 @@ async function pollOnce(): Promise<void> {
   }
 
   if (!apiOk) {
+    state.consecutiveStreamsFailures = 0;
     state.latest = {
       updatedAt: now,
-      server: { apiOk: false, version: null, cpuLoadPercent: cpuLoadPercent(), throughputIn: 0, throughputOut: 0, totalSessions: 0 },
+      server: {
+        apiOk: false,
+        version: null,
+        cpuLoadPercent: cpuLoadPercent(),
+        throughputIn: 0,
+        throughputOut: 0,
+        totalSessions: 0,
+        streamsStale: false,
+      },
       streams: [],
     };
     state.emitter.emit("snapshot", state.latest);
@@ -87,11 +112,20 @@ async function pollOnce(): Promise<void> {
   // treating it that way would both wipe every stream's sparkline history
   // (see the cleanup pass below) and report the server as healthy with
   // nothing running, hiding the real problem. Keep the last-known-good
-  // snapshot and try again next cycle instead.
+  // snapshot and try again next cycle instead — but after enough
+  // consecutive failures, tell consumers that snapshot may be stale (see
+  // STALE_AFTER_FAILURES) rather than silently serving frozen data forever
+  // with apiOk still reading true.
   let streamRefs: { vhost: string; app: string; stream: string }[];
   try {
     streamRefs = await client.listAllStreams();
+    state.consecutiveStreamsFailures = 0;
   } catch {
+    state.consecutiveStreamsFailures += 1;
+    if (state.consecutiveStreamsFailures >= STALE_AFTER_FAILURES && !state.latest.server.streamsStale) {
+      state.latest = { ...state.latest, server: { ...state.latest.server, streamsStale: true } };
+      state.emitter.emit("snapshot", state.latest);
+    }
     return;
   }
 
@@ -157,7 +191,15 @@ async function pollOnce(): Promise<void> {
 
   state.latest = {
     updatedAt: now,
-    server: { apiOk: true, version, cpuLoadPercent: cpuLoadPercent(), throughputIn, throughputOut, totalSessions },
+    server: {
+      apiOk: true,
+      version,
+      cpuLoadPercent: cpuLoadPercent(),
+      throughputIn,
+      throughputOut,
+      totalSessions,
+      streamsStale: false,
+    },
     streams,
   };
   state.emitter.emit("snapshot", state.latest);

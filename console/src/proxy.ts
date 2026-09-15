@@ -13,7 +13,12 @@ const PUBLIC_PATHS = ["/login", "/api/admission-webhook"];
 // and forgets to classify here: visible to any authenticated user, never
 // silently public, since the authentication check above already ran.
 const ENGINEER_PAGES = ["/profiles", "/hosts", "/users", "/servers", "/audit", "/access-settings"];
-const OPERATOR_PAGES = ["/push", "/rec", "/addinput", "/channels", "/access"];
+// Raw OvenMediaEngine engine logs include client IPs and full HTTP debug
+// dumps — more operational/diagnostic detail than a pure-Viewer role's other
+// capabilities (Streams, Stats: read-only monitoring) imply, so this is
+// Operator-level like the rest of day-to-day ops rather than the "no
+// explicit rule" default of Viewer it used to fall through to.
+const OPERATOR_PAGES = ["/push", "/rec", "/addinput", "/channels", "/access", "/logs"];
 
 function isUnderAny(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -35,11 +40,13 @@ const RULES: { test: (pathname: string, method: string) => boolean; role: Role }
       // Access settings (SignedPolicy/AdmissionWebhooks status + secret
       // rotation) moved to its own Engineer-only page in the UI sweep —
       // nothing Operator-facing calls this anymore.
-      p.startsWith("/api/access-status") ||
-      // Rotating the SignedPolicy secret is a Server.xml-level "access
-      // settings" change (PRD §10, Engineer) even though everyday viewer-link
-      // issuance below it is Operator-level.
-      p.startsWith("/api/viewer-links/reissue"),
+      p.startsWith("/api/access-status"),
+    // Note: /api/viewer-links/reissue is also Engineer-only (rotating the
+    // SignedPolicy secret is a Server.xml-level "access settings" change,
+    // PRD §10) even though everyday viewer-link issuance below is
+    // Operator-level — handled as an explicit override in requiredRole()
+    // below, not here, since it's a strict prefix of the Operator rule's
+    // /api/viewer-links and shouldn't depend on array order.
     role: "engineer",
   },
   { test: (p, m) => p === "/api/apps" && m === "PATCH", role: "engineer" },
@@ -60,12 +67,22 @@ const RULES: { test: (pathname: string, method: string) => boolean; role: Role }
       p.startsWith("/api/key-presets") ||
       p.startsWith("/api/viewer-links") ||
       p.startsWith("/api/ingest-info") ||
+      p.startsWith("/api/logs") ||
       p === "/api/apps",
     role: "operator",
   },
 ];
 
 function requiredRole(pathname: string, method: string): Role {
+  // Checked before RULES, not folded into it: /api/viewer-links/reissue
+  // (Engineer) is a strict prefix of /api/viewer-links (Operator, below in
+  // RULES), so its protection would otherwise depend on the Engineer rule
+  // being iterated before the Operator one in the array — true today, but a
+  // silent, untested thing for a future edit to break by reordering RULES.
+  // Making it an explicit, order-independent override removes that risk
+  // entirely rather than just documenting it.
+  if (pathname.startsWith("/api/viewer-links/reissue")) return "engineer";
+
   for (const rule of RULES) {
     if (rule.test(pathname, method)) return rule.role;
   }

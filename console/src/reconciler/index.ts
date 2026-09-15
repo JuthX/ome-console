@@ -13,6 +13,12 @@ const RECONCILE_INTERVAL_MS = 30_000;
 interface ReconcilerState {
   started: boolean;
   lastApiOk: boolean;
+  // Per-task ("push:vhost/app/stream" or "record:vhost/app/stream") flag for
+  // whether its last reconcile attempt failed — lets a failure be logged
+  // once on the ok->erroring transition (matching src/alerts/index.ts's
+  // pushEvalErroring pattern) instead of every 30s retry forever with zero
+  // signal, which is what happened before (only success wrote an audit row).
+  erroring: Map<string, boolean>;
 }
 
 declare global {
@@ -21,12 +27,27 @@ declare global {
 
 function getState(): ReconcilerState {
   if (!globalThis.__omeReconciler) {
-    globalThis.__omeReconciler = { started: false, lastApiOk: false };
+    globalThis.__omeReconciler = { started: false, lastApiOk: false, erroring: new Map() };
   }
   return globalThis.__omeReconciler;
 }
 
+/** Logs once on the ok->erroring transition, matching alerts/index.ts's pushEvalErroring pattern. */
+function markErroring(state: ReconcilerState, key: string, kind: "push" | "record", label: string, err: unknown): void {
+  if (state.erroring.get(key)) return;
+  state.erroring.set(key, true);
+  console.error(`[reconciler] failed to restart ${kind} ${label}, will retry next cycle:`, err);
+}
+
+/** Logs once on recovery, if this task was previously erroring. */
+function markRecovered(state: ReconcilerState, key: string, kind: "push" | "record", label: string): void {
+  if (!state.erroring.get(key)) return;
+  state.erroring.delete(key);
+  console.log(`[reconciler] ${kind} ${label} recovered.`);
+}
+
 async function reconcileOnce(): Promise<void> {
+  const state = getState();
   const client = getOmeClient();
   const pushRows = listEnabledDesiredPush();
   const recordRows = listEnabledDesiredRecord();
@@ -44,13 +65,19 @@ async function reconcileOnce(): Promise<void> {
         const actualIds = new Set(actual.map((p) => p.id));
         for (const row of pushesForApp) {
           const config = stripLabel(JSON.parse(row.config) as StoredConfig);
+          const label = `${vhost}/${app}/${row.stream_name}`;
+          const errKey = `push:${label}`;
           if (!actualIds.has(config.id)) {
             try {
               await client.startPush(vhost, app, config as StartPushRequest);
-              writeAudit("reconciler", "reconcile.push-restart", `${vhost}/${app}/${row.stream_name}`, { id: config.id });
-            } catch {
-              // Will retry next cycle — a transient OME error shouldn't crash the reconciler.
+              writeAudit("reconciler", "reconcile.push-restart", label, { id: config.id });
+              markRecovered(state, errKey, "push", label);
+            } catch (err) {
+              // A transient OME error shouldn't crash the reconciler — will retry next cycle.
+              markErroring(state, errKey, "push", label, err);
             }
+          } else {
+            markRecovered(state, errKey, "push", label);
           }
         }
       }
@@ -63,17 +90,31 @@ async function reconcileOnce(): Promise<void> {
         const actualIds = new Set(actual.map((r) => r.id));
         for (const row of recordsForApp) {
           const config = stripLabel(JSON.parse(row.config) as StoredConfig);
+          const label = `${vhost}/${app}/${row.stream_name}`;
+          const errKey = `record:${label}`;
           if (!actualIds.has(config.id)) {
             try {
               await client.startRecord(vhost, app, config as StartRecordRequest);
-              writeAudit("reconciler", "reconcile.record-restart", `${vhost}/${app}/${row.stream_name}`, { id: config.id });
-            } catch {
-              // Will retry next cycle.
+              writeAudit("reconciler", "reconcile.record-restart", label, { id: config.id });
+              markRecovered(state, errKey, "record", label);
+            } catch (err) {
+              markErroring(state, errKey, "record", label, err);
             }
+          } else {
+            markRecovered(state, errKey, "record", label);
           }
         }
       }
     }
+  }
+
+  // Drop erroring entries for tasks that are no longer desired (deleted or
+  // disabled) — otherwise this map only ever grows over the app's lifetime.
+  const desiredKeys = new Set<string>();
+  for (const row of pushRows) desiredKeys.add(`push:${row.vhost}/${row.app}/${row.stream_name}`);
+  for (const row of recordRows) desiredKeys.add(`record:${row.vhost}/${row.app}/${row.stream_name}`);
+  for (const key of state.erroring.keys()) {
+    if (!desiredKeys.has(key)) state.erroring.delete(key);
   }
 }
 
