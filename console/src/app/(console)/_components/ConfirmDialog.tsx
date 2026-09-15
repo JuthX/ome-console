@@ -1,5 +1,7 @@
 "use client";
 
+import { useModalA11y } from "../_lib/useModalA11y";
+
 /**
  * A lightweight click-guard for destructive-ish actions (stop push, stop
  * recording) — not the PRD §6 #2 restart-confirmation dialog, which is
@@ -21,12 +23,15 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { titleId, panelProps } = useModalA11y(open, onCancel);
   if (!open) return null;
 
   return (
     <div className="modal-backdrop" onClick={onCancel}>
-      <div className="pane modal" onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ marginTop: 0 }}>{title}</h3>
+      <div className="pane modal" {...panelProps} onClick={(e) => e.stopPropagation()}>
+        <h3 id={titleId} style={{ marginTop: 0 }}>
+          {title}
+        </h3>
         <p className="lead" style={{ marginBottom: 16 }}>
           {message}
         </p>

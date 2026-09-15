@@ -1,5 +1,7 @@
 "use client";
 
+import { useModalA11y } from "../_lib/useModalA11y";
+
 /**
  * PRD §6 #2: "Changing an application or an output profile restarts the app
  * and disconnects every publisher and viewer on it. Every such write
@@ -23,12 +25,15 @@ export function RestartWarningDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { titleId, panelProps } = useModalA11y(open, onCancel);
   if (!open) return null;
 
   return (
     <div className="modal-backdrop" onClick={onCancel}>
-      <div className="pane modal" onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ marginTop: 0 }}>Restart &quot;{appName}&quot;?</h3>
+      <div className="pane modal" {...panelProps} onClick={(e) => e.stopPropagation()}>
+        <h3 id={titleId} style={{ marginTop: 0 }}>
+          Restart &quot;{appName}&quot;?
+        </h3>
         <div className="note">
           This restarts <span className="mono">{appName}</span> and disconnects every publisher and viewer on it —
           currently <b>{sessionCount}</b> live session{sessionCount === 1 ? "" : "s"}.
