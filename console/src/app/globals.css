@@ -1,0 +1,171 @@
+/* Design system ported verbatim from the project's UI reference,
+   ome-console-mockup.html, so the real app matches it exactly. */
+:root{
+  --bg:#1c222b; --panel:#232a34; --raised:#2b3440; --line:#38424f; --line-soft:#303a46;
+  --ink:#e8ecf1; --ink-2:#aab3c0; --ink-3:#7a8595;
+  --act:#6f9ff0; --act-ink:#0e1420;
+  --tally:#e2413b; --rec:#e2413b; --warn:#e6a93f; --ok:#42c48a; --idle:#5b6675;
+  --mono:var(--font-plex-mono),ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:var(--font-plex-sans),system-ui,-apple-system,Segoe UI,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--act);text-decoration:none}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* shell */
+.shell{display:grid;grid-template-columns:232px 1fr;grid-template-rows:52px 1fr;height:100vh}
+.top{grid-column:1/3;display:flex;align-items:center;gap:18px;padding:0 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{font-weight:600;letter-spacing:.01em}
+.brand small{color:var(--ink-3);font-weight:400;margin-left:8px}
+.scope{display:flex;align-items:center;gap:6px;margin-left:8px}
+.scope select{background:var(--raised);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:5px 8px;font:inherit}
+.scope .sep{color:var(--ink-3)}
+.top .spacer{flex:1}
+.health{display:flex;gap:16px;font-size:12.5px;color:var(--ink-2)}
+.health b{color:var(--ink);font-weight:500}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;vertical-align:1px}
+.dot.bad{background:var(--tally)}
+.dot.warn{background:var(--warn)}
+.clock{font-family:var(--mono);font-size:13px;color:var(--ink-2)}
+
+nav{border-right:1px solid var(--line);background:var(--panel);padding:14px 10px;overflow:auto}
+nav .grp{color:var(--ink-3);font-size:12px;padding:12px 10px 6px}
+nav button,nav a{display:flex;width:100%;align-items:center;gap:10px;text-align:left;padding:7px 10px;border-radius:7px;color:var(--ink-2)}
+nav button:hover,nav a:hover{background:var(--raised);color:var(--ink)}
+nav button.on,nav a.on{background:var(--raised);color:var(--ink);font-weight:500}
+nav .k{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+nav .k.hot{color:var(--tally)}
+nav svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+main{overflow:auto;padding:22px 26px 40px}
+h1{font-size:19px;font-weight:600;margin:0 0 4px}
+.lead{color:var(--ink-2);margin:0 0 18px;max-width:70ch}
+h2{font-size:14px;font-weight:600;margin:24px 0 10px}
+.row{display:flex;align-items:center;gap:10px}
+.row .grow{flex:1}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:7px;border:1px solid var(--line);background:var(--raised);color:var(--ink);font-size:13px}
+.btn:hover{border-color:#4a566a}
+.btn.pri{background:var(--act);border-color:var(--act);color:var(--act-ink);font-weight:500}
+.btn.danger{color:#ffb3af;border-color:#5a3532}
+.btn.sm{padding:3px 8px;font-size:12px}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* status chips: colour encodes state, nothing else */
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:5px;font-size:12px;line-height:18px;background:var(--raised);color:var(--ink-2)}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--idle)}
+.chip.live::before{background:var(--tally)}
+.chip.rec::before{background:var(--rec)}
+.chip.push::before{background:var(--ok)}
+.chip.warn::before{background:var(--warn)}
+.chip.off::before{background:var(--idle)}
+.chip.reserved::before{background:var(--warn)}
+.chip.xml{background:transparent;border:1px dashed var(--line);color:var(--ink-3)}
+.chip.xml::before{display:none}
+
+/* multiviewer */
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;outline:2px solid transparent;outline-offset:2px}
+.tile:hover{border-color:#4a566a}
+.tile.live{border-color:var(--tally);box-shadow:inset 0 0 0 1px var(--tally)}
+.tile .pic{position:relative;aspect-ratio:16/9;background:
+  linear-gradient(160deg,#2e3a4a,#1a2029 60%,#23303f);}
+.tile .pic .bars{position:absolute;inset:0;background:
+  linear-gradient(90deg,#cfd3d8 0 14.28%,#d9d64a 0 28.57%,#5fd0c8 0 42.85%,#63c563 0 57.14%,#d75fc9 0 71.42%,#d85f5f 0 85.71%,#5f7fd8 0);opacity:.13;height:60%}
+.tile .pic .noise{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:6px 6px}
+.tile.idle .pic{background:#1a1f27}
+.tile .tag{position:absolute;left:8px;top:8px;display:flex;gap:6px}
+.tag span{background:rgba(10,14,20,.78);padding:2px 7px;border-radius:4px;font-size:11px;font-family:var(--mono);color:#e8ecf1}
+.tag span.on{background:var(--tally);color:#fff;font-weight:500}
+.tag span.rec{background:#c0332d;color:#fff}
+.tile .tc{position:absolute;right:8px;bottom:8px;font-family:var(--mono);font-size:11px;background:rgba(10,14,20,.78);padding:2px 6px;border-radius:4px}
+.tile .meta{padding:9px 11px 10px}
+.tile .name{display:flex;align-items:baseline;gap:8px;font-weight:500}
+.tile .name small{color:var(--ink-3);font-weight:400;font-family:var(--mono);font-size:11.5px}
+.tile .line{display:flex;justify-content:space-between;color:var(--ink-2);font-size:12.5px;margin-top:4px}
+.meter{height:5px;background:var(--raised);border-radius:3px;margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ok);border-radius:3px}
+.meter i.hi{background:var(--warn)}
+.tile.idle .meta{color:var(--ink-3)}
+
+/* tables */
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+thead th{text-align:left;font-weight:500;font-size:12.5px;color:var(--ink-3);padding:9px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#27303b}
+tbody tr.sel td{background:#2a3543}
+td .sub{display:block;color:var(--ink-3);font-size:12px;margin-top:1px}
+td.acts{text-align:right;white-space:nowrap}
+.mono{font-family:var(--mono);font-size:12.5px}
+.url{font-family:var(--mono);font-size:12px;color:var(--ink-2);max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle}
+
+/* cards / panes */
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:13px}
+.kv dt{color:var(--ink-3)} .kv dd{margin:0}
+.stat{font-size:24px;font-weight:500;font-family:var(--mono)}
+.stat small{font-size:12px;font-family:var(--sans);color:var(--ink-3);margin-left:6px;font-weight:400}
+.note{border-left:3px solid var(--warn);background:#2a2a24;color:#e8dcb8;padding:8px 12px;border-radius:0 7px 7px 0;font-size:13px;margin:12px 0}
+.tracks{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:6px 16px;font-size:13px;align-items:center}
+.tracks .h{color:var(--ink-3);font-size:12px}
+.sw{position:relative;width:34px;height:20px;border-radius:10px;background:var(--idle);flex:none;display:inline-block;vertical-align:middle}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.sw.on{background:var(--act)} .sw.on::after{left:16px}
+/* UI sweep: a visibly non-interactive switch (read-only engine status, or a
+   provider/publisher toggle for a Server.xml-declared app) — same shape as
+   a real switch but dimmed, so it doesn't invite a click that does nothing. */
+.sw.ro{opacity:.5;cursor:default}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-3)}
+.field input,.field select{background:var(--raised);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 8px;font:inherit;font-size:13px}
+.field input.mono{font-family:var(--mono)}
+.spark{display:flex;align-items:flex-end;gap:2px;height:36px}
+.spark i{flex:1;background:var(--act);opacity:.7;border-radius:1px 1px 0 0}
+.logs{font-family:var(--mono);font-size:12px;color:var(--ink-2);background:#171b22;border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:1.6;max-height:220px;overflow:auto}
+.logs .w{color:var(--warn)} .logs .e{color:#ff8a84} .logs .i{color:var(--ink-3)}
+
+/* drawer */
+.drawer{position:fixed;top:52px;right:0;bottom:0;width:520px;background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .18s ease;overflow:auto;padding:18px 20px 40px;z-index:5}
+.drawer.on{transform:none}
+.drawer .head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.drawer h3{margin:0;font-size:16px}
+.drawer .x{margin-left:auto;color:var(--ink-3);font-size:20px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:14px 0}
+.tabs button{padding:7px 10px;color:var(--ink-3);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-color:var(--act)}
+.acts-row{display:flex;flex-wrap:wrap;gap:8px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);background:#0f1319;border:1px solid var(--line);padding:9px 14px;border-radius:8px;opacity:0;transition:.2s;font-size:13px;z-index:9}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+/* Sprint 4: click-guard confirm dialog (stop push/recording) */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,14,20,.6);display:flex;align-items:center;justify-content:center;z-index:10}
+.modal{width:100%;max-width:380px}
+@media (prefers-reduced-motion:reduce){.drawer,.toast,.sw::after{transition:none}}
+.hamburger{display:none;background:none;border:0;padding:4px;color:var(--ink);cursor:pointer}
+.hamburger svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+.nav-backdrop{display:none}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .hamburger{display:inline-flex}
+  nav{display:none}
+  nav.open{display:block;position:fixed;top:52px;left:0;bottom:0;width:82%;max-width:280px;z-index:50;overflow-y:auto;box-shadow:2px 0 16px rgba(0,0,0,.3)}
+  .nav-backdrop{display:block;position:fixed;inset:52px 0 0 0;background:rgba(0,0,0,.4);z-index:40}
+  nav a{padding:10px}
+  .drawer{width:100%}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+
+/* login — new for the real app, not in the mockup; same design tokens */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{width:100%;max-width:340px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px 26px}
+.login-card h1{font-size:17px;margin-bottom:6px}
+.login-card .lead{margin-bottom:20px;font-size:13px}
+.login-card form{display:flex;flex-direction:column;gap:14px}
+.login-card .btn.pri{justify-content:center;padding:9px 11px}
+.login-error{color:#ffb3af;font-size:12.5px;margin:-6px 0 0}

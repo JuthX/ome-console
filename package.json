@@ -1,0 +1,11 @@
+{
+  "name": "oven-console",
+  "version": "1.0.0",
+  "description": "A self-hosted operator console for OvenMediaEngine.",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/<your-username>/oven-console.git"
+  }
+}

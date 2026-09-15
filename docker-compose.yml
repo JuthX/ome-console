@@ -1,0 +1,164 @@
+name: ovenmediaengine
+
+services:
+  ome:
+    image: airensoft/ovenmediaengine:${OME_IMAGE_TAG:?err}
+    container_name: ome
+    restart: unless-stopped
+    environment:
+      # Left blank-tolerant (not `:?err`) so a first `docker compose up -d`
+      # with an empty .env still starts the stack — the console's /setup
+      # wizard fills these in and tells you to restart. OME_HOST_IP blank is
+      # genuinely harmless (confirmed: OME boots fine, WebRTC ICE candidates
+      # just won't resolve correctly for off-host clients until it's set for
+      # real) — but OME_ACCESS_TOKEN blank is NOT: OME hard-fails to boot at
+      # all on an empty <AccessToken> (confirmed), and Compose's `${VAR}`
+      # (unlike Server.xml's own `${env:VAR:default}`) still passes an empty
+      # string through rather than omitting the var entirely, so Server.xml's
+      # own `:changeme` fallback never even sees a chance to kick in — hence
+      # the `:-changeme` fallback here instead, applied at the Compose layer.
+      # Never leave this as "changeme" in a real deployment.
+      OME_HOST_IP: ${OME_HOST_IP}
+      OME_ACCESS_TOKEN: ${OME_ACCESS_TOKEN:-changeme}
+      OME_DEFAULT_VHOST: ${OME_DEFAULT_VHOST:-default}
+      OME_DEFAULT_APP: ${OME_DEFAULT_APP:-app}
+      # Only relevant if you've set up the optional TLS cert bind mounts
+      # below — must match the directory name under both of them.
+      OME_TLS_CERT_NAME: ${OME_TLS_CERT_NAME:-your-domain}
+      # Optional overrides (see .env.example) — passed through with the same
+      # defaults Server.xml's own ${env:VAR:default} already falls back to,
+      # so uncommenting one of these in .env actually takes effect instead of
+      # silently doing nothing. Changing a port here also means updating the
+      # matching entry in `ports:`/`expose:` below if it needs to stay
+      # reachable at a *different* host-side port — the container's internal
+      # port and the host mapping are independent.
+      OME_API_PORT: ${OME_API_PORT:-8081}
+      OME_RTMP_PROV_PORT: ${OME_RTMP_PROV_PORT:-1935}
+      OME_SRT_PROV_PORT: ${OME_SRT_PROV_PORT:-9999}
+      OME_SRT_PUB_PORT: ${OME_SRT_PUB_PORT:-9998}
+      OME_WEBRTC_SIGNALLING_PORT: ${OME_WEBRTC_SIGNALLING_PORT:-3333}
+      OME_WEBRTC_SIGNALLING_TLS_PORT: ${OME_WEBRTC_SIGNALLING_TLS_PORT:-3334}
+      OME_WEBRTC_CANDIDATE_PORT: ${OME_WEBRTC_CANDIDATE_PORT:-10000-10009/udp}
+      OME_WEBRTC_TCP_ICE_PORT: ${OME_WEBRTC_TCP_ICE_PORT:-10000/tcp}
+      OME_WEBRTC_TCP_RELAY_PORT: ${OME_WEBRTC_TCP_RELAY_PORT:-3478}
+      OME_LLHLS_STREAM_PORT: ${OME_LLHLS_STREAM_PORT:-3333}
+      OME_LLHLS_STREAM_TLS_PORT: ${OME_LLHLS_STREAM_TLS_PORT:-3334}
+      OME_THUMBNAIL_PORT: ${OME_THUMBNAIL_PORT:-3333}
+    volumes:
+      - ./ome/conf/Server.xml:/opt/ovenmediaengine/bin/origin_conf/Server.xml:ro
+      - ./ome/conf/Logger.xml:/opt/ovenmediaengine/bin/origin_conf/Logger.xml:ro
+      - ./ome/logs:/var/log/ovenmediaengine
+      - ${RECORDINGS_DIR:-./data/recordings}:/opt/ovenmediaengine/recordings
+      - ${VOD_DIR:-./data/vod}:/opt/ovenmediaengine/media
+      # OME's <TLS> block (Server.xml) is fatal to boot if it can't load a
+      # cert at all — so this bundled, committed self-signed placeholder
+      # (ome/certs/self-signed/) is mounted unconditionally at the literal
+      # "your-domain" path (matching Server.xml's OME_TLS_CERT_NAME default,
+      # NOT the ${OME_TLS_CERT_NAME} variable — deliberately, so once you set
+      # OME_TLS_CERT_NAME to your own cert's directory name below, Server.xml
+      # stops looking here at all and this line becomes a harmless no-op
+      # rather than colliding with your real mount at the same path). Purely
+      # so a fresh clone boots — fine for everything except SignedPolicy
+      # viewer links, which need a cert real browsers/players will trust.
+      # Replace it by uncommenting the two lines below (your own real cert —
+      # Let's Encrypt/certbot or similar) and setting OME_TLS_CERT_NAME to
+      # match its directory name. See Server.xml's <TLS> comment for why a
+      # TLS-terminating reverse proxy in front of OME (e.g. NPM) can't
+      # substitute for this.
+      - ./ome/certs/self-signed:/etc/letsencrypt/live/your-domain:ro
+      # - /path/to/your/letsencrypt/live/your-domain:/etc/letsencrypt/live/your-domain:ro
+      # - /path/to/your/letsencrypt/archive/your-domain:/etc/letsencrypt/archive/your-domain:ro
+    ports:
+      - "1935:1935/tcp"          # RTMP provider
+      - "9999:9999/udp"          # SRT provider
+      - "9998:9998/udp"          # SRT publisher (pull, e.g. vMix as SRT caller)
+      - "10000-10009:10000-10009/udp"  # WebRTC ICE candidates
+      - "10000:10000/tcp"        # WebRTC direct TCP ICE (RFC 6544)
+      - "3478:3478/tcp"          # WebRTC TURN/TCP relay fallback
+      # WebRTC+LLHLS TLS listener, published directly (bypassing a reverse
+      # proxy) so SignedPolicy viewer links validate — see Server.xml's <TLS>
+      # comment. Only needed if you've set up the optional TLS cert above.
+      - "3334:3334/tcp"
+    expose:
+      - "3333"   # WebRTC signalling + LLHLS + Thumbnail (shared HTTP listener) — reached via your reverse proxy over `proxy`
+      - "8081"   # REST API — meant for the console only; never published to the host.
+                 # Note: since this container is also on `proxy` (for the media port
+                 # below), any other trusted container on that shared network could
+                 # technically reach this port too — accepted trade-off, see plan.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - internal
+      - proxy
+
+  console:
+    build: ./console
+    image: oven-console:latest
+    container_name: console
+    restart: unless-stopped
+    environment:
+      OME_API_BASE_URL: http://ome:8081
+      OME_MEDIA_BASE_URL: http://ome:3333
+      # Same fallback as the ome service above — keeps the two in sync by
+      # default (both default to "changeme") until the setup wizard writes a
+      # real one to .env for both to pick up on the next restart.
+      OME_ACCESS_TOKEN: ${OME_ACCESS_TOKEN:-changeme}
+      # The add-input wizard builds plain RTMP/SRT ingest URLs for crew to
+      # publish to — needs the same public host/ports `ome` binds, not the
+      # internal `ome:PORT` addresses used for the API/media above.
+      OME_HOST_IP: ${OME_HOST_IP}
+      OME_RTMP_PROV_PORT: ${OME_RTMP_PROV_PORT:-1935}
+      OME_SRT_PROV_PORT: ${OME_SRT_PROV_PORT:-9999}
+      OME_DEFAULT_VHOST: ${OME_DEFAULT_VHOST:-default}
+      OME_DEFAULT_APP: ${OME_DEFAULT_APP:-app}
+      # Viewer links are signed against the public domain a real client
+      # actually connects to, not the internal ome:3333 address.
+      MEDIA_DOMAIN: ${MEDIA_DOMAIN}
+      SIGNED_POLICY_SECRET: ${SIGNED_POLICY_SECRET}
+      ADMISSION_WEBHOOK_SECRET: ${ADMISSION_WEBHOOK_SECRET}
+      # Alert notifications via your own mail server — optional, configured
+      # (or skipped) in the setup wizard.
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+      DATABASE_PATH: /app/data/console.sqlite
+      OME_LOG_PATH: /app/ome-logs/ovenmediaengine.log
+      VOD_DIR: /app/vod
+      CONSOLE_ADMIN_USER: ${CONSOLE_ADMIN_USER}
+      CONSOLE_ADMIN_PASSWORD_HASH: ${CONSOLE_ADMIN_PASSWORD_HASH}
+      CONSOLE_SESSION_SECRET: ${CONSOLE_SESSION_SECRET}
+      # Encrypts the server registry's stored access tokens.
+      CONSOLE_ENCRYPTION_KEY: ${CONSOLE_ENCRYPTION_KEY}
+      # Where the setup wizard writes generated config back to — the same
+      # file this whole stack reads via `.env`, bind-mounted read-write into
+      # this container only. A deliberate, scoped tradeoff (see SECURITY.md):
+      # the wizard disables itself once a first real user exists, so this
+      # write access is only exploitable by first resetting the database.
+      ENV_FILE_PATH: /app/.env
+    volumes:
+      - ./console/data:/app/data
+      - ./ome/logs:/app/ome-logs:ro
+      - ${VOD_DIR:-./data/vod}:/app/vod:ro
+      - ./.env:/app/.env
+    expose:
+      - "3000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - internal
+      - proxy
+    depends_on:
+      - ome
+
+networks:
+  internal:
+    driver: bridge
+  proxy:
+    external: true
+    name: proxy
