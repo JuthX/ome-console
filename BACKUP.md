@@ -44,3 +44,5 @@ A daily cron entry runs this automatically (see `crontab -l` on this host).
    ```
 4. `docker compose up -d`
 5. If recordings/VOD were also backed up separately, `rsync` them back into `$RECORDINGS_DIR`/`$VOD_DIR` before step 4 (OME reads them at startup for scheduled/multiplex channels).
+
+**Verified for real (2026-09-15):** the steps above had only ever been documented, never actually performed — the backup half was tested, restore wasn't. Ran a genuine restore drill: extracted a real cron-produced archive into an isolated, throwaway Compose stack (separate container names, no published ports, no changes to the live `ome`/`console` containers or their real data) and confirmed end-to-end — OME booted cleanly from the restored `Server.xml`/`Logger.xml` (including loading the real TLS cert), the console read the restored `console.sqlite` correctly (`PRAGMA integrity_check` ok, real user/audit rows intact), and the console successfully reached OME's API using the restored access token. The live deployment was never touched; the throwaway stack was torn down afterward.
