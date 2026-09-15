@@ -104,7 +104,8 @@ export default function AuditPage() {
         </label>
       </div>
 
-      <table>
+      <div className="table-wrap">
+        <table>
         <thead>
           <tr>
             <th>Time</th>
@@ -141,7 +142,8 @@ export default function AuditPage() {
             );
           })}
         </tbody>
-      </table>
+        </table>
+      </div>
       {visibleRows.length === 0 && !error && (
         <p className="lead" style={{ marginTop: 12 }}>
           No matching audit entries.

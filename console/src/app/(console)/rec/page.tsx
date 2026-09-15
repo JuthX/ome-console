@@ -278,7 +278,8 @@ export default function RecordingPage() {
           </p>
         </div>
       ) : (
-        <table>
+        <div className="table-wrap">
+          <table>
           <thead>
             <tr>
               <th>Recording</th>
@@ -324,7 +325,8 @@ export default function RecordingPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       <div className="row" style={{ marginTop: 18, marginBottom: 10 }}>

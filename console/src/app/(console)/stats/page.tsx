@@ -144,7 +144,8 @@ export default function StatsPage() {
           </div>
 
           <h2>Live streams</h2>
-          <table>
+          <div className="table-wrap">
+            <table>
             <thead>
               <tr>
                 <th>Stream</th>
@@ -168,10 +169,12 @@ export default function StatsPage() {
                 </tr>
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
 
           <h2>Alert rules</h2>
-          <table>
+          <div className="table-wrap">
+            <table>
             <thead>
               <tr>
                 <th>Rule</th>
@@ -229,7 +232,8 @@ export default function StatsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
           {routeError && (
             <p style={{ marginTop: 10 }}>
               <span className="chip warn">{routeError}</span>

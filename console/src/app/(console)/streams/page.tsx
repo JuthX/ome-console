@@ -162,7 +162,8 @@ export default function StreamsPage() {
           </p>
         </div>
       ) : (
-        <table>
+        <div className="table-wrap">
+          <table>
           <thead>
             <tr>
               <th>Stream</th>
@@ -196,7 +197,8 @@ export default function StreamsPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
     </>
   );
