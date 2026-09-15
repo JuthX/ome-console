@@ -296,7 +296,8 @@ export default function ChannelsPage() {
           </p>
         </div>
       ) : (
-        <table>
+        <div className="table-wrap">
+          <table>
           <thead>
             <tr>
               <th>Channel</th>
@@ -328,7 +329,8 @@ export default function ChannelsPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       <h2>Multiplex channels</h2>
@@ -343,7 +345,8 @@ export default function ChannelsPage() {
           </p>
         </div>
       ) : (
-        <table>
+        <div className="table-wrap">
+          <table>
           <thead>
             <tr>
               <th>Channel</th>
@@ -376,7 +379,8 @@ export default function ChannelsPage() {
               );
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       <div className="row" style={{ marginTop: 12, marginBottom: 18 }}>

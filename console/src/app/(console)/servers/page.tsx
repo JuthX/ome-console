@@ -132,7 +132,8 @@ export default function ServersPage() {
         </button>
       </div>
 
-      <table>
+      <div className="table-wrap">
+        <table>
         <thead>
           <tr>
             <th>Name</th>
@@ -170,7 +171,8 @@ export default function ServersPage() {
             );
           })}
         </tbody>
-      </table>
+        </table>
+      </div>
 
       {showForm && (
         <div className="pane" style={{ marginTop: 12 }}>

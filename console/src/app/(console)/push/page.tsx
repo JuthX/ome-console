@@ -234,7 +234,8 @@ export default function PushPage() {
           </p>
         </div>
       ) : (
-        <table>
+        <div className="table-wrap">
+          <table>
           <thead>
             <tr>
               <th>Target</th>
@@ -293,7 +294,8 @@ export default function PushPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       <div className="row" style={{ marginTop: 18, marginBottom: 10 }}>
