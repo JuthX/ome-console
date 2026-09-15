@@ -45,6 +45,11 @@ export interface ServerSnapshot {
   throughputIn: number;
   throughputOut: number;
   totalSessions: number;
+  /** True once listAllStreams() has failed several cycles in a row while
+   *  apiOk stayed true — the poller deliberately keeps serving the last
+   *  known-good `streams`/history rather than wiping it on a transient
+   *  error, so this is the only signal that what's on screen may be stale. */
+  streamsStale: boolean;
 }
 
 export interface LiveSnapshot {

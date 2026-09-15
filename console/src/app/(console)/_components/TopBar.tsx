@@ -37,8 +37,13 @@ export function TopBar() {
       <div className="spacer" />
       <div className="health">
         <span>
-          <span className={`dot${!snapshot ? " warn" : server?.apiOk ? "" : " bad"}`} />
-          API <b>{!snapshot ? "connecting…" : server?.apiOk ? "ok" : "unreachable"}</b>
+          <span
+            className={`dot${!snapshot ? " warn" : !server?.apiOk ? " bad" : server.streamsStale ? " warn" : ""}`}
+          />
+          API{" "}
+          <b>
+            {!snapshot ? "connecting…" : !server?.apiOk ? "unreachable" : server.streamsStale ? "ok, data stale" : "ok"}
+          </b>
         </span>
         {server?.apiOk && (
           <>
