@@ -96,6 +96,16 @@ export default function ProfilesPage() {
 
   const sessionCount = appStats?.totalConnections ?? 0;
   const isDeclared = appDetail?.dynamic === false;
+  // This host transcodes on CPU only (no GPU) — a single encoded track is
+  // normal and expected, but stacking more is where real load starts to
+  // compound. The only other signal today is the reactive server-load
+  // alert (fires after CPU already crosses 85%); this is an earlier,
+  // proactive heads-up computed from what's already on screen.
+  const encodedTrackCount = profiles.reduce((sum, p) => {
+    const videos = p.encodes.videos?.filter((v) => !isBypass(v.bypass)).length ?? 0;
+    const audios = p.encodes.audios?.filter((a) => !isBypass(a.bypass)).length ?? 0;
+    return sum + videos + audios;
+  }, 0);
 
   async function submitCreate() {
     if (!selectedApp || !name || !outputStreamName) return;
@@ -204,6 +214,13 @@ export default function ProfilesPage() {
         <div className="note">
           Saving or deleting a profile here restarts <span className="mono">{selectedApp?.app}</span> and
           disconnects every publisher and viewer on it — do this between segments, not mid-show.
+        </div>
+      )}
+
+      {encodedTrackCount >= 2 && (
+        <div className="note">
+          <b>{encodedTrackCount}</b> encoded tracks configured across these profiles — this host transcodes on CPU
+          only (no GPU); each concurrent encode adds real load.
         </div>
       )}
 
