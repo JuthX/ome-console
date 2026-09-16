@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "a recipient address is required" }, { status: 400 });
   }
   try {
-    await sendEmail(to, "Oven Console test email", "This confirms your SMTP settings are working.");
+    await sendEmail(to, "OME-Console test email", "This confirms your SMTP settings are working.");
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : String(err) });

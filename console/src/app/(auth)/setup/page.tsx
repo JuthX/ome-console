@@ -153,7 +153,7 @@ export default function SetupPage() {
   return (
     <div className="login-wrap">
       <div className="login-card" style={{ maxWidth: 480 }}>
-        <h1>Oven Console setup</h1>
+        <h1>OME-Console setup</h1>
         <p className="lead">
           One-time setup — {STEP_LABEL[step]} ({stepIndex + 1}/{STEP_ORDER.length})
         </p>

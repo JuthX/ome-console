@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Plain ingest connection strings for the add-input wizard — no revocable
-// key/expiry yet (Sprint 7's `keys` table + admission webhook own that).
+// key/expiry yet (the `keys` table + admission webhook own that instead).
 // SRT streamid format ({vhost}/{app}/{stream}) confirmed against a real
-// v0.21.0 instance in Sprint 1 (see oven-console-prd.md §12).
+// v0.21.0 instance.
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const vhost = searchParams.get("vhost");

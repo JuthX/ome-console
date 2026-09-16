@@ -1,8 +1,10 @@
-# Oven Console
+![OME-Console](docs/banner.jpg)
+
+# OME-Console
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
-A self-hosted operator console for [OvenMediaEngine](https://github.com/AirenSoft/OvenMediaEngine) (OME) — the open-source streaming server OME itself ships with no UI for. Oven Console gives you a real web dashboard on top of it: live stream monitoring, push/record tasks, publish-key and viewer-link management, alerting, multi-user roles, and more.
+A self-hosted, open source operator console for [OvenMediaEngine](https://github.com/AirenSoft/OvenMediaEngine) (OME) — the streaming server OME itself ships with no UI for. OME-Console gives you a real web dashboard on top of it: live stream monitoring, push/record tasks, publish-key and viewer-link management, alerting, multi-user roles, and more.
 
 > **Not affiliated with AirenSoft.** This is an independent, third-party project that talks to OME entirely through its public REST API. It isn't built, reviewed, or endorsed by the OvenMediaEngine team.
 
@@ -38,7 +40,7 @@ docker network create proxy
 
 ```bash
 git clone <this-repo-url>
-cd oven-console
+cd ome-console
 cp .env.example .env
 docker compose up -d
 ```

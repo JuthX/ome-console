@@ -8,9 +8,10 @@ import nodemailer from "nodemailer";
 
 // globalThis-pinned, not a plain module-level `let` — Next.js bundles
 // instrumentation.ts and each route handler as separate module graphs even
-// within one running process (see CLAUDE.md), which already caused two
-// silent bugs this project (the SQLite connection, the poller's state)
-// before both were fixed the same way.
+// within one running process, which already caused two silent bugs in this
+// project (the SQLite connection, the poller's state) before both were
+// fixed the same way — see console/src/db/index.ts or
+// console/src/stats-poller/index.ts for the pattern.
 declare global {
   var __consoleSmtpTransporter: ReturnType<typeof nodemailer.createTransport> | undefined;
 }

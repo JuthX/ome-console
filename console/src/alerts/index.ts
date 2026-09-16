@@ -113,7 +113,7 @@ async function notify(ruleName: RuleName, displayName: string, transition: "fire
     try {
       await sendEmail(
         route.target,
-        `[Oven Console] ${label} — ${verb}`,
+        `[OME-Console] ${label} — ${verb}`,
         `${label} is ${verb} for "${displayName}".`,
       );
     } catch (err) {

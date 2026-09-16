@@ -15,7 +15,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Oven Console",
+  title: "OME-Console",
   description: "Operator console for OvenMediaEngine",
 };
 

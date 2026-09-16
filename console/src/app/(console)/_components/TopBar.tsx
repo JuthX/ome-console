@@ -32,7 +32,7 @@ export function TopBar() {
         </svg>
       </button>
       <div className="brand">
-        Oven Console <small>{server?.version ? `OvenMediaEngine ${server.version}` : "OvenMediaEngine"}</small>
+        OME-Console <small>{server?.version ? `OvenMediaEngine ${server.version}` : "OvenMediaEngine"}</small>
       </div>
       <div className="spacer" />
       <div className="health">

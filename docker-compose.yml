@@ -25,6 +25,23 @@ services:
       # Only relevant if you've set up the optional TLS cert bind mounts
       # below — must match the directory name under both of them.
       OME_TLS_CERT_NAME: ${OME_TLS_CERT_NAME:-your-domain}
+      # Real bug, caught by an actual end-to-end fresh-install test (pushing
+      # a real stream through a genuinely fresh stack, not just checking
+      # that containers start): these two were passed to the `console`
+      # service (below) so it can verify/sign with them, but never to `ome`
+      # itself — meaning Server.xml's `${env:SIGNED_POLICY_SECRET:changeme}`/
+      # `${env:ADMISSION_WEBHOOK_SECRET:changeme}` always saw the var as
+      # completely absent and silently used "changeme", while the console
+      # verified against the real secret. Every admission-webhook publish
+      # attempt failed its signature check (OME signed with "changeme", the
+      # console rejected it) regardless of whether a valid key existed —
+      # publishing was completely broken behind AdmissionWebhooks. Same
+      # `:-changeme` Compose-layer fallback as OME_ACCESS_TOKEN above, for
+      # the same reason (Compose's `${VAR}` still passes an empty string
+      # through rather than omitting it, so Server.xml's own fallback never
+      # gets a chance to apply on a blank .env either).
+      SIGNED_POLICY_SECRET: ${SIGNED_POLICY_SECRET:-changeme}
+      ADMISSION_WEBHOOK_SECRET: ${ADMISSION_WEBHOOK_SECRET:-changeme}
       # Optional overrides (see .env.example) — passed through with the same
       # defaults Server.xml's own ${env:VAR:default} already falls back to,
       # so uncommenting one of these in .env actually takes effect instead of
@@ -95,7 +112,7 @@ services:
 
   console:
     build: ./console
-    image: oven-console:latest
+    image: ome-console:latest
     container_name: console
     restart: unless-stopped
     environment:
