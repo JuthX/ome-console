@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="login-card">
-        <h1>Oven Console</h1>
+        <h1>OME-Console</h1>
         <p className="lead">Sign in to manage this OvenMediaEngine instance.</p>
         <form action={formAction}>
           <label className="field">

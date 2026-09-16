@@ -1,5 +1,5 @@
 {
-  "name": "oven-console",
+  "name": "ome-console",
   "version": "1.0.0",
   "description": "A self-hosted operator console for OvenMediaEngine.",
   "private": true,
