@@ -12,7 +12,7 @@ ome/logs/
 console/data/*.sqlite
 console/data/*.sqlite-*
 
-# Sprint 8b: local backup archives (contain secrets from .env) — never commit
+# local backup archives (contain secrets from .env) — never commit
 backups/
 
 # node / next.js

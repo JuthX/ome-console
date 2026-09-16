@@ -81,7 +81,7 @@ docker compose up -d
 Then visit `https://<your-console-domain>/setup` (or `http://localhost:3000/setup` for local testing) — a one-time wizard walks you through:
 
 1. Creating your first (Engineer) account.
-2. Connecting to this host's OvenMediaEngine instance — pick a host IP/domain, and either paste an access token or let the wizard generate one.
+2. Connecting to this host's OvenMediaEngine instance — host IP/domain is optional (leave it blank for local-only testing; set it for real before going live, since WebRTC playback needs it for viewers off this host), and you can either paste an access token or let the wizard generate one.
 3. Naming your vhost/app (defaults match OME's own `default`/`app`).
 4. Generating the session-signing and access-control secrets the console needs — strong, random, never hand-typed.
 5. Optionally configuring SMTP for alert emails (skippable — there's also a real settings page for this later, under Statistics & alerts).

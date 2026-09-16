@@ -6,7 +6,7 @@
 	No secrets are inlined here — everything sensitive comes from ${env:...} substitution,
 	sourced from this project's .env via docker-compose. Safe to commit.
 
-	Changes vs. the stock image default, for Oven Console Sprint 1:
+	Changes vs. the stock image default, made for OME-Console:
 	  - Bind/Managers/API: uncommented, to enable the REST API the console will use.
 	  - Bind/Publishers: removed OVT (origin-edge relay, Tier 4/out of scope for now);
 	    added Thumbnail, sharing the WebRTC/LLHLS port by default.
@@ -67,7 +67,7 @@
 
 	<!-- Settings for the ports to bind -->
 	<Bind>
-		<!-- REST API server — the Oven Console backend is the only client of this. -->
+		<!-- REST API server — the OME-Console backend is the only client of this. -->
 		<Managers>
 			<API>
 				<Port>${env:OME_API_PORT:8081}</Port>
