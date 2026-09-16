@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 import { countUsers, createUser } from "@/db/users";
-import { writeEnvValues } from "@/lib/envFile";
+import { readEnvFile, writeEnvValues } from "@/lib/envFile";
 import { isSetupNeeded } from "@/lib/setupStatus";
 
 // First-run setup wizard (see /setup). proxy.ts already gates this route
@@ -12,8 +12,24 @@ import { isSetupNeeded } from "@/lib/setupStatus";
 // test/route.ts uses for its SSRF check rather than trusting the outer layer
 // alone.
 
+// Same charset for both — written verbatim into Server.xml's
+// ${env:VAR:default} substitution (no XML escaping happens there) and used
+// as a URL path segment elsewhere in the app, so anything outside this set
+// (a stray <, &, or ", or a space) could produce invalid XML and stop OME
+// booting on the next restart, or a broken stream URL.
+const VHOST_APP_PATTERN = /^[A-Za-z0-9_-]+$/;
+
 export async function GET() {
-  return NextResponse.json({ needed: isSetupNeeded(), hasAccount: countUsers() > 0 });
+  const env = readEnvFile();
+  return NextResponse.json({
+    needed: isSetupNeeded(),
+    hasAccount: countUsers() > 0,
+    // Lets the wizard resume at the right step after a refresh instead of
+    // always restarting at "account" — each step is idempotent server-side
+    // regardless, this is purely about not repeating already-done steps.
+    hasOmeConfig: !!env.OME_ACCESS_TOKEN,
+    hasSecrets: !!env.CONSOLE_SESSION_SECRET,
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -49,15 +65,24 @@ export async function POST(req: NextRequest) {
 
     case "ome": {
       const { hostIp, accessToken, vhost, app } = body;
-      if (!hostIp) {
-        return NextResponse.json({ error: "the host's public IP or domain is required" }, { status: 400 });
+      // hostIp is deliberately NOT required — blank is genuinely fine, it
+      // just means WebRTC ICE candidates won't resolve correctly for
+      // off-host viewers until it's set for real (confirmed elsewhere in
+      // this app); no reason to block local-only testing over it.
+      const finalVhost = vhost || "default";
+      const finalApp = app || "app";
+      if (!VHOST_APP_PATTERN.test(finalVhost) || !VHOST_APP_PATTERN.test(finalApp)) {
+        return NextResponse.json(
+          { error: "vhost/app names can only contain letters, numbers, hyphens and underscores" },
+          { status: 400 },
+        );
       }
       const token = accessToken || randomBytes(32).toString("hex");
       writeEnvValues({
-        OME_HOST_IP: hostIp,
+        OME_HOST_IP: hostIp || "",
         OME_ACCESS_TOKEN: token,
-        OME_DEFAULT_VHOST: vhost || "default",
-        OME_DEFAULT_APP: app || "app",
+        OME_DEFAULT_VHOST: finalVhost,
+        OME_DEFAULT_APP: finalApp,
       });
       return NextResponse.json({ ok: true, accessToken: token });
     }

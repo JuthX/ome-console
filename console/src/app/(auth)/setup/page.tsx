@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Step = "account" | "ome" | "secrets" | "smtp" | "finish";
+
+// Mirrors the server-side check in api/setup/route.ts — written verbatim
+// into Server.xml's ${env:VAR:default} substitution (no XML escaping
+// happens there), so anything outside this set could produce invalid XML
+// and stop OME booting on the next restart.
+const VHOST_APP_PATTERN = /^[A-Za-z0-9_-]+$/;
 
 const STEP_ORDER: Step[] = ["account", "ome", "secrets", "smtp", "finish"];
 const STEP_LABEL: Record<Step, string> = {
@@ -62,6 +68,20 @@ export default function SetupPage() {
   const [checkedOnce, setCheckedOnce] = useState(false);
   const [ready, setReady] = useState(false);
 
+  // Resume at the right step after a refresh instead of always restarting
+  // at "account" — each step is idempotent server-side regardless, this is
+  // purely about not making the operator repeat already-done steps.
+  useEffect(() => {
+    fetch("/api/setup", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((status) => {
+        if (status.hasSecrets) setStepIndex(STEP_ORDER.indexOf("smtp"));
+        else if (status.hasOmeConfig) setStepIndex(STEP_ORDER.indexOf("secrets"));
+        else if (status.hasAccount) setStepIndex(STEP_ORDER.indexOf("ome"));
+      })
+      .catch(() => {});
+  }, []);
+
   function next() {
     setError(null);
     setStepIndex((i) => Math.min(i + 1, STEP_ORDER.length - 1));
@@ -83,7 +103,9 @@ export default function SetupPage() {
   }
 
   async function handleOme() {
-    if (!hostIp) return setError("The host's public IP or domain is required.");
+    if (!VHOST_APP_PATTERN.test(vhost) || !VHOST_APP_PATTERN.test(app)) {
+      return setError("VirtualHost/Application names can only contain letters, numbers, hyphens and underscores.");
+    }
     setBusy(true);
     setError(null);
     try {
@@ -199,14 +221,13 @@ export default function SetupPage() {
               Connect to this host&apos;s OvenMediaEngine instance.
             </p>
             <label className="field">
-              Host public IP or domain
-              <input
-                value={hostIp}
-                onChange={(e) => setHostIp(e.target.value)}
-                placeholder="203.0.113.10"
-                required
-              />
+              Host public IP or domain (optional for local testing)
+              <input value={hostIp} onChange={(e) => setHostIp(e.target.value)} placeholder="203.0.113.10" />
             </label>
+            <p className="note" style={{ fontSize: 12 }}>
+              Leave blank if you&apos;re just trying this out locally. Without it, WebRTC playback won&apos;t work
+              correctly for viewers off this host — set it for real before going live.
+            </p>
             <label className="field">
               API access token
               <input className="mono" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} />
