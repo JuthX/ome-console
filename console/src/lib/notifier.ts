@@ -39,3 +39,17 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
   if (!from) throw new Error("SMTP_FROM must be set");
   await getTransporter().sendMail({ from, to, subject, text: body });
 }
+
+/**
+ * Called by /api/smtp after writing new settings — the transporter above is
+ * only ever built once and cached, so without this a saved change would
+ * silently keep using the old host/credentials until the next full
+ * restart. Dropping the cache is enough: getTransporter() reads
+ * process.env fresh next time it's called, and the settings route updates
+ * process.env in this same running process (not just the .env file) before
+ * calling this, so the very next send already uses the new values — no
+ * restart required for SMTP specifically, unlike most other settings.
+ */
+export function clearCachedTransporter(): void {
+  globalThis.__consoleSmtpTransporter = undefined;
+}
