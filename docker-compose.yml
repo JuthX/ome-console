@@ -159,6 +159,14 @@ services:
 networks:
   internal:
     driver: bridge
+  # external: true means Compose expects this network to already exist —
+  # deliberately, so this stack can share it with your existing reverse
+  # proxy (Nginx Proxy Manager, Caddy, Traefik, ...) rather than each stack
+  # getting an island network nothing else can join. If it doesn't exist
+  # yet, `docker compose up -d` fails outright with "network proxy
+  # declared as external, but could not be found" — create it once first:
+  #   docker network create proxy
+  # then connect your reverse proxy's own container(s) to it too.
   proxy:
     external: true
     name: proxy
