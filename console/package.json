@@ -3,11 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "license": "AGPL-3.0-only",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/<your-username>/oven-console.git",
-    "directory": "console"
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -22,13 +22,19 @@ A self-hosted operator console for [OvenMediaEngine](https://github.com/AirenSof
 - **Streams, push & record** — pull/push RTMP/SRT/RTSP/WebRTC sources, push to RTMP/SRT/MPEG-TS destinations, schedule recordings, all with reusable presets.
 - **Publish keys & viewer links** — gate who can publish (enforced live via an admission webhook) and issue expiring, signed playback links, without touching OME's config by hand.
 - **Multi-user roles** — Viewer / Operator / Engineer, additive permissions, a real `users` table with bcrypt-hashed passwords.
-- **Alerts** — a fixed rule catalog evaluated against the same live stats feed the UI uses, routed to email.
+- **Alerts** — a fixed rule catalog evaluated against the same live stats feed the UI uses, routed to email, with SMTP configurable right in the app (Engineer settings, on the Statistics & alerts page) — set it up during the initial wizard or any time after.
 - **Audit log** — every console-initiated write, attributed to the user who made it.
 - **Multi-server registry** — register other OME instances for a reachability check (operational multi-server switching is intentionally out of scope for now).
 
 ## Quick start
 
-Requires Docker and Docker Compose. You'll also need a reverse proxy in front of both services for real TLS (any of Nginx Proxy Manager, Caddy, Traefik — this repo's `docker-compose.yml` assumes one exists but doesn't include one).
+Requires Docker and Docker Compose. You'll also need a reverse proxy in front of both services for real TLS (any of Nginx Proxy Manager, Caddy, Traefik — this repo's `docker-compose.yml` assumes one exists but doesn't include one), and its container(s) need to share a Docker network with this stack:
+
+```bash
+docker network create proxy
+```
+
+(Skip this if a network literally named `proxy` already exists — `docker compose up -d` fails immediately with "network proxy declared as external, but could not be found" if it doesn't.)
 
 ```bash
 git clone <this-repo-url>
@@ -56,6 +62,8 @@ After that, sign in at `/login` with the account you created.
 - `console/` — the Next.js 16 app (App Router, TypeScript) that is this whole project's UI and API.
 - `docker-compose.yml` / `.env` — the whole stack: OME + the console.
 
+The two containers are named `ome` and `console` — generic names that could collide if another stack on the same host already uses them. Rename them in `docker-compose.yml`'s `container_name:` fields if that happens; `docker compose up -d` will otherwise fail with a clear "container name already in use" error, not something silent.
+
 A few decisions worth knowing before you dig into the code:
 
 - **The console is a secondary source of state, not the primary one.** Anything declared in `Server.xml` is read-only via OME's API — the console never pretends it can edit what it can't. Console-created resources (push/record tasks, publish keys, alert routes) live in the console's own SQLite database, and a reconciler re-applies them to OME after a restart, since OME itself doesn't persist API-created resources.
@@ -69,4 +77,4 @@ A few decisions worth knowing before you dig into the code:
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for local dev setup and PR expectations. Found a security issue? See [SECURITY.md](SECURITY.md) instead of opening a public issue.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local dev setup, the test suite (`npm test`, Vitest), and PR expectations. Found a security issue? See [SECURITY.md](SECURITY.md) instead of opening a public issue.

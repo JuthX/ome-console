@@ -22,3 +22,9 @@ console/npm-debug.log*
 
 # misc
 .DS_Store
+
+# internal planning docs — genuinely useful locally, but read as internal
+# sprint-numbered working notes out of context, and CLAUDE.md references a
+# local-only file path; kept on disk, deliberately not shipped publicly
+CLAUDE.md
+oven-console-prd.md

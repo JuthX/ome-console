@@ -16,10 +16,11 @@ Before opening a PR, from `console/`:
 
 ```bash
 npm run lint    # eslint
+npm test        # vitest — unit tests for the pure/near-pure logic modules
 npm run build   # next build — also runs the TypeScript check
 ```
 
-There's no automated test suite yet. Every feature in this project has been verified by actually exercising it — pushing a real test stream, driving the UI with a headless browser — against a real deployed instance rather than trusting a green build alone. If you're touching anything that talks to live data (the stats poller, SSE, the OME client), please do the same before opening a PR: describe what you tested and how in the PR description.
+The test suite covers pure logic (role hierarchy, SSRF allow/deny checks, UI formatters, login rate-limiting, the setup wizard's `.env` read/write helper) — it does not cover anything that talks to live data (the stats poller, SSE, the OME client, or any route that hits a real OvenMediaEngine instance). For that, every feature in this project has instead been verified by actually exercising it — pushing a real test stream, driving the UI with a headless browser — against a real deployed instance rather than trusting a green build alone. If you're touching anything in that category, please do the same before opening a PR: describe what you tested and how in the PR description.
 
 ## Code conventions
 
