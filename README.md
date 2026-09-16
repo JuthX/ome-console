@@ -12,9 +12,9 @@ A self-hosted operator console for [OvenMediaEngine](https://github.com/AirenSof
 | --- | --- |
 | ![Login screen](docs/screenshots/login.png) | ![Multiviewer dashboard](docs/screenshots/multiviewer.png) |
 
-| Publish keys & viewer links |
-| --- |
-| ![Publish keys and viewer links](docs/screenshots/access.png) |
+| Publish keys & viewer links | Email (SMTP) settings |
+| --- | --- |
+| ![Publish keys and viewer links](docs/screenshots/access.png) | ![Email SMTP settings](docs/screenshots/smtp-settings.png) |
 
 ## What it does
 
