@@ -3,5 +3,5 @@
   "version": "1.0.0",
   "description": "A self-hosted operator console for OvenMediaEngine.",
   "private": true,
-  "license": "AGPL-3.0-only"
+  "license": "Elastic-2.0"
 }

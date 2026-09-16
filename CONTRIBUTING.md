@@ -1,5 +1,15 @@
 # Contributing
 
+## Contributor License Agreement
+
+By submitting a pull request or otherwise contributing code, documentation, or other content to this project, you agree to the following:
+
+- You grant the maintainer (Thomas Tust) a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, reproduce, modify, prepare derivative works of, publicly display, publicly perform, sublicense, and distribute your contribution as part of ome-console, **under any license terms** — including terms different from the Elastic License 2.0 this project currently ships under. This is what lets the project relicense in the future (e.g. for a future release, a dual-licensing arrangement, or a commercial edition) without having to track down and re-clear every past contributor individually.
+- You confirm that each contribution is your own original work, or that you otherwise have the right to submit it under these terms (for example, work done on behalf of an employer who has authorized you to contribute it).
+- You keep your copyright — this isn't an assignment. You're licensing your contribution, not giving it away.
+
+If you can't agree to this for a given contribution (e.g. your employer requires you to retain exclusive relicensing rights), please say so in the PR before it's reviewed, rather than after.
+
 ## Local development
 
 The console is the only app here with a real dev workflow — OvenMediaEngine itself is an upstream binary image, not something you build from source in this repo.
