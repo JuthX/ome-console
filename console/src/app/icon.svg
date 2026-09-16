@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 784" width="560" height="784" role="img" aria-labelledby="ooTitle">
+  <title id="ooTitle">OpenOven (light)</title>
+  <defs>
+    <linearGradient id="ooShell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A6FA5"/>
+      <stop offset="1" stop-color="#28527E"/>
+    </linearGradient>
+    <linearGradient id="ooDoor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2B527F"/>
+      <stop offset="1" stop-color="#1E3D66"/>
+    </linearGradient>
+    <linearGradient id="ooOrange" x1="0" y1="0" x2="0.25" y2="1">
+      <stop offset="0" stop-color="#F0A052"/>
+      <stop offset="1" stop-color="#DE7830"/>
+    </linearGradient>
+    <linearGradient id="ooCavity" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#CEDCE9" stop-opacity="0"/>
+      <stop offset="0.55" stop-color="#CEDCE9" stop-opacity="0"/>
+      <stop offset="1" stop-color="#CEDCE9" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="ooSteamB" x1="0" y1="0" x2="1" y2="0.6">
+      <stop offset="0" stop-color="#4E8BC4"/>
+      <stop offset="1" stop-color="#2F618F"/>
+    </linearGradient>
+    <linearGradient id="ooSteamO" x1="0" y1="0" x2="1" y2="0.6">
+      <stop offset="0" stop-color="#F09A4A"/>
+      <stop offset="1" stop-color="#DE6F36"/>
+    </linearGradient>
+    <!-- knocks a clear halo out of the shell where the open-source mark sits -->
+    <mask id="ooHalo" maskUnits="userSpaceOnUse" x="0" y="200" width="600" height="600">
+      <rect x="0" y="200" width="600" height="600" fill="#fff"/>
+      <circle cx="291.5" cy="303" r="89.5" fill="#000"/>
+    </mask>
+  </defs>
+
+  <g transform="translate(-12,-4)">
+    <!-- oven cavity walls -->
+    <rect x="56" y="392" width="472" height="336" rx="26" fill="url(#ooCavity)"/>
+
+    <!-- legs -->
+    <g fill="#1E3D66">
+      <rect x="76" y="742" width="81" height="35" rx="6"/>
+      <rect x="432" y="742" width="76" height="35" rx="6"/>
+    </g>
+
+    <g mask="url(#ooHalo)">
+      <!-- shell -->
+      <rect x="36.5" y="255.5" width="511" height="491" rx="27.5"
+            fill="none" stroke="url(#ooShell)" stroke-width="25"/>
+      <!-- control-panel rail -->
+      <path d="M49 357 H535" fill="none" stroke="#3A6FA5" stroke-width="24"/>
+    </g>
+
+    <!-- knobs -->
+    <g fill="#3A6FA5">
+      <circle cx="104" cy="307" r="20"/>
+      <circle cx="166" cy="307" r="20"/>
+    </g>
+    <g fill="#F0A052">
+      <circle cx="418" cy="307" r="20"/>
+      <circle cx="480" cy="307" r="20"/>
+    </g>
+
+    <!-- door -->
+    <rect x="84" y="407" width="417" height="293" rx="34" fill="url(#ooDoor)"/>
+    <rect x="107" y="430" width="371" height="247" rx="20" fill="url(#ooOrange)"/>
+    <path d="M172 465 H412 a18 18 0 0 1 22.2 17.5 L476.8 659.5 a18 18 0 0 1 -13.8 17.5
+             H121 a18 18 0 0 1 -13.8 -17.5 L149.8 482.5 A18 18 0 0 1 172 465 Z" fill="#FFFFFF"/>
+
+    <!-- prompt -->
+    <g fill="none" stroke="#2E5A8A" stroke-width="32" stroke-linejoin="miter">
+      <path d="M209 508 L285 570 L209 632"/>
+    </g>
+    <rect x="286" y="614" width="100" height="26" rx="3" fill="#2E5A8A"/>
+
+    <!-- open-source mark -->
+    <path d="M262.3 366.1 L277.7 328 A28.5 28.5 0 1 1 305.3 328 L320.7 366.1
+             A69.5 69.5 0 1 0 262.3 366.1 Z"
+          fill="#6CA860" stroke="#33623E" stroke-width="12" stroke-linejoin="round"/>
+
+    <!-- steam -->
+    <path d="M206 51 C166 68 168 128 196 152 C204 168 210 196 211 219 C228 206 239 188 239 165 C239 120 218 108 192 82 C201 66 205 58 206 51 Z" fill="url(#ooSteamB)"/>
+    <path d="M206 51 C166 68 168 128 196 152 C204 168 210 196 211 219 C228 206 239 188 239 165 C239 120 218 108 192 82 C201 66 205 58 206 51 Z" fill="url(#ooSteamO)" transform="translate(41.7,-43.98) scale(1.176)"/>
+    <path d="M206 51 C166 68 168 128 196 152 C204 168 210 196 211 219 C228 206 239 188 239 165 C239 120 218 108 192 82 C201 66 205 58 206 51 Z" fill="url(#ooSteamB)" transform="translate(574,0) scale(-1,1)"/>
+  </g>
+</svg>
