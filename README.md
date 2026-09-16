@@ -1,12 +1,41 @@
-![OME-Console](docs/banner.jpg)
+![ome-console](docs/banner.jpg)
 
-# OME-Console
+# ome-console
 
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![License: ELv2](https://img.shields.io/badge/License-ELv2-blue.svg)](LICENSE)
 
-A self-hosted, open source operator console for [OvenMediaEngine](https://github.com/AirenSoft/OvenMediaEngine) (OME) — the streaming server OME itself ships with no UI for. OME-Console gives you a real web dashboard on top of it: live stream monitoring, push/record tasks, publish-key and viewer-link management, alerting, multi-user roles, and more.
+## About
 
-> **Not affiliated with AirenSoft.** This is an independent, third-party project that talks to OME entirely through its public REST API. It isn't built, reviewed, or endorsed by the OvenMediaEngine team.
+ome-console is an independent web console for
+[OvenMediaEngine](https://github.com/OvenMediaLabs/OvenMediaEngine) (OME).
+It talks to OME through its public REST API and does not modify or bundle OME.
+
+ome-console is not affiliated with, endorsed by, or supported by
+OvenMedia Labs Inc. "OvenMediaEngine" and "OME" are their trademarks and are
+used here only to indicate compatibility.
+
+## License
+
+ome-console is **source-available** under the
+[Elastic License 2.0](LICENSE).
+
+**You can:**
+- run it on your own servers, at no cost, for personal or commercial use
+- use it on paid projects and client work (events, productions, installations)
+- modify it, fork it, and share your changes
+- run it internally for your own team or organisation
+
+**You cannot:**
+- offer ome-console itself to third parties as a hosted or managed service
+  (e.g. "log in and manage your streams" for your customers)
+- remove or hide the license notices
+
+If your use case falls in the grey zone, open an issue or email
+info@videopro.io — the answer is usually yes. A commercial license is
+available for hosting providers.
+
+Contributions are accepted under a Contributor License Agreement
+(see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Screenshots
 
@@ -28,15 +57,19 @@ A self-hosted, open source operator console for [OvenMediaEngine](https://github
 - **Audit log** — every console-initiated write, attributed to the user who made it.
 - **Multi-server registry** — register other OME instances for a reachability check (operational multi-server switching is intentionally out of scope for now).
 
-## Quick start
+## Deployment
 
-Requires Docker and Docker Compose. You'll also need a reverse proxy in front of both services for real TLS (any of Nginx Proxy Manager, Caddy, Traefik — this repo's `docker-compose.yml` assumes one exists but doesn't include one), and its container(s) need to share a Docker network with this stack:
+### Prerequisites
 
-```bash
-docker network create proxy
-```
+- Docker and Docker Compose.
+- A reverse proxy in front of both services for real TLS (any of Nginx Proxy Manager, Caddy, Traefik — this repo's `docker-compose.yml` assumes one exists but doesn't include one).
+- A Docker network your reverse proxy and this stack both join, literally named `proxy`:
+  ```bash
+  docker network create proxy
+  ```
+  Skip this if that network already exists. Without it, `docker compose up -d` fails immediately with "network proxy declared as external, but could not be found".
 
-(Skip this if a network literally named `proxy` already exists — `docker compose up -d` fails immediately with "network proxy declared as external, but could not be found" if it doesn't.)
+### First install
 
 ```bash
 git clone <this-repo-url>
@@ -51,12 +84,26 @@ Then visit `https://<your-console-domain>/setup` (or `http://localhost:3000/setu
 2. Connecting to this host's OvenMediaEngine instance — pick a host IP/domain, and either paste an access token or let the wizard generate one.
 3. Naming your vhost/app (defaults match OME's own `default`/`app`).
 4. Generating the session-signing and access-control secrets the console needs — strong, random, never hand-typed.
-5. Optionally configuring SMTP for alert emails (skippable, can be set later).
+5. Optionally configuring SMTP for alert emails (skippable — there's also a real settings page for this later, under Statistics & alerts).
 6. Restarting the stack (`docker compose up -d` — the wizard shows you the exact command) so the new configuration takes effect, then confirming it's live.
 
 After that, sign in at `/login` with the account you created.
 
 **Already have real users?** Set `CONSOLE_ADMIN_USER`/`CONSOLE_ADMIN_PASSWORD_HASH` in `.env` instead — the wizard is skipped entirely and that becomes the first Engineer account.
+
+### Updating
+
+```bash
+git pull
+docker compose build console
+docker compose up -d
+```
+
+`ome` only needs rebuilding/restarting if you changed `ome/conf/Server.xml` or `.env` values it reads — the console picks up code changes on every `docker compose build console`.
+
+### Backups
+
+See [BACKUP.md](BACKUP.md) for the backup script and restore procedure.
 
 ## Architecture
 
@@ -73,10 +120,6 @@ A few decisions worth knowing before you dig into the code:
 - **One background poller, not per-page polling.** A single process hits OME's stats API every few seconds and fans a snapshot out over Server-Sent Events to every open tab.
 - **Console-owned state lives in SQLite**, bind-mounted so it survives rebuilds. The schema is additive-only — nothing here does destructive migrations.
 
-## License
-
-[GNU AGPL v3.0](LICENSE) — the same license OvenMediaEngine itself uses. In short: you can self-host, modify, and redistribute this freely, but if you run a modified version as a network service, you must make your changes available to the people using it.
-
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for local dev setup, the test suite (`npm test`, Vitest), and PR expectations. Found a security issue? See [SECURITY.md](SECURITY.md) instead of opening a public issue.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the Contributor License Agreement, local dev setup, the test suite (`npm test`, Vitest), and PR expectations. Found a security issue? See [SECURITY.md](SECURITY.md) instead of opening a public issue.
