@@ -40,7 +40,9 @@ const RULES: { test: (pathname: string, method: string) => boolean; role: Role }
       // Access settings (SignedPolicy/AdmissionWebhooks status + secret
       // rotation) moved to its own Engineer-only page in the UI sweep —
       // nothing Operator-facing calls this anymore.
-      p.startsWith("/api/access-status"),
+      p.startsWith("/api/access-status") ||
+      // SMTP credentials — same sensitivity class as the secrets above.
+      p.startsWith("/api/smtp"),
     // Note: /api/viewer-links/reissue is also Engineer-only (rotating the
     // SignedPolicy secret is a Server.xml-level "access settings" change,
     // PRD §10) even though everyday viewer-link issuance below is

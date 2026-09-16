@@ -43,6 +43,18 @@ export default function StatsPage() {
   const [newRouteEmail, setNewRouteEmail] = useState("");
   const [routeError, setRouteError] = useState<string | null>(null);
 
+  const [smtpHost, setSmtpHost] = useState("");
+  const [smtpPort, setSmtpPort] = useState("587");
+  const [smtpUser, setSmtpUser] = useState("");
+  const [smtpFrom, setSmtpFrom] = useState("");
+  const [smtpPassword, setSmtpPassword] = useState("");
+  const [smtpPasswordSet, setSmtpPasswordSet] = useState(false);
+  const [smtpSaving, setSmtpSaving] = useState(false);
+  const [smtpMessage, setSmtpMessage] = useState<string | null>(null);
+  const [smtpTestTo, setSmtpTestTo] = useState("");
+  const [smtpTesting, setSmtpTesting] = useState(false);
+  const [smtpTestMessage, setSmtpTestMessage] = useState<string | null>(null);
+
   useEffect(() => {
     function fetchAlerts() {
       fetch("/api/alerts", { cache: "no-store" })
@@ -54,6 +66,63 @@ export default function StatsPage() {
     const id = setInterval(fetchAlerts, ALERTS_POLL_MS);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!canManageRoutes) return;
+    fetch("/api/smtp", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((body) => {
+        setSmtpHost(body.host ?? "");
+        setSmtpPort(body.port ?? "587");
+        setSmtpUser(body.user ?? "");
+        setSmtpFrom(body.from ?? "");
+        setSmtpPasswordSet(!!body.passwordSet);
+      })
+      .catch(() => {});
+  }, [canManageRoutes]);
+
+  async function handleSaveSmtp() {
+    setSmtpSaving(true);
+    setSmtpMessage(null);
+    try {
+      const res = await fetch("/api/smtp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ host: smtpHost, port: smtpPort, user: smtpUser, password: smtpPassword, from: smtpFrom }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setSmtpMessage(body.error ?? "Failed to save");
+        return;
+      }
+      if (smtpPassword) setSmtpPasswordSet(true);
+      setSmtpPassword("");
+      setSmtpMessage("Saved — takes effect immediately, no restart needed.");
+    } catch (err) {
+      setSmtpMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSmtpSaving(false);
+    }
+  }
+
+  async function handleSendTestEmail() {
+    if (!smtpTestTo) return;
+    setSmtpTesting(true);
+    setSmtpTestMessage(null);
+    try {
+      const res = await fetch("/api/smtp/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: smtpTestTo }),
+      });
+      const body = await res.json();
+      setSmtpTestMessage(body.ok ? `Sent to ${smtpTestTo}.` : (body.error ?? "Failed to send"));
+    } catch (err) {
+      setSmtpTestMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSmtpTesting(false);
+    }
+  }
 
   async function handleAddRoute(ruleName: RuleName) {
     if (!newRouteEmail) return;
@@ -238,6 +307,64 @@ export default function StatsPage() {
             <p style={{ marginTop: 10 }}>
               <span className="chip warn">{routeError}</span>
             </p>
+          )}
+
+          {canManageRoutes && (
+            <>
+              <h2>Email (SMTP)</h2>
+              <p className="lead" style={{ fontSize: 13 }}>
+                Used to send the alert emails routed above. Set once during initial setup — change or add it here
+                any time; unlike most settings, this one applies immediately, no restart needed.
+              </p>
+              <div className="pane">
+                <div className="grid3">
+                  <label className="field">
+                    SMTP host
+                    <input value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} placeholder="smtp.example.com" />
+                  </label>
+                  <label className="field">
+                    Port
+                    <input value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} />
+                  </label>
+                  <label className="field">
+                    Username
+                    <input value={smtpUser} onChange={(e) => setSmtpUser(e.target.value)} />
+                  </label>
+                  <label className="field">
+                    Password
+                    <input
+                      type="password"
+                      value={smtpPassword}
+                      onChange={(e) => setSmtpPassword(e.target.value)}
+                      placeholder={smtpPasswordSet ? "unchanged — leave blank to keep it" : ""}
+                    />
+                  </label>
+                  <label className="field">
+                    From address
+                    <input value={smtpFrom} onChange={(e) => setSmtpFrom(e.target.value)} placeholder="alerts@example.com" />
+                  </label>
+                </div>
+                <div className="row" style={{ marginTop: 12 }}>
+                  <span className="grow"></span>
+                  {smtpMessage && <span className="chip">{smtpMessage}</span>}
+                  <button className="btn pri" onClick={handleSaveSmtp} disabled={smtpSaving}>
+                    {smtpSaving ? "Saving…" : "Save"}
+                  </button>
+                </div>
+                <div className="row" style={{ marginTop: 10, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
+                  <input
+                    style={{ width: 220 }}
+                    value={smtpTestTo}
+                    onChange={(e) => setSmtpTestTo(e.target.value)}
+                    placeholder="send a test to…"
+                  />
+                  <button className="btn sm" onClick={handleSendTestEmail} disabled={smtpTesting || !smtpTestTo}>
+                    {smtpTesting ? "Sending…" : "Send test email"}
+                  </button>
+                  {smtpTestMessage && <span className="chip">{smtpTestMessage}</span>}
+                </div>
+              </div>
+            </>
           )}
         </>
       )}
