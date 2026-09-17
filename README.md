@@ -8,7 +8,8 @@
 
 ome-console is an independent web console for
 [OvenMediaEngine](https://github.com/OvenMediaLabs/OvenMediaEngine) (OME).
-It talks to OME through its public REST API and does not modify or bundle OME.
+It talks to OME through its public REST API and does not modify OME. The
+optional combined stack pulls the official OME image from Docker Hub.
 
 ome-console is not affiliated with, endorsed by, or supported by
 OvenMedia Labs Inc. "OvenMediaEngine" and "OME" are their trademarks and are
@@ -81,7 +82,7 @@ Both modes share the same setup wizard, prerequisites, and update/backup steps b
 **Console-only** (bring your own OME — see above for the config it needs):
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/JuthX/ome-console.git
 cd ome-console
 cp .env.example .env
 # edit .env: OME_API_BASE_URL, OME_MEDIA_BASE_URL, OME_ACCESS_TOKEN
@@ -91,7 +92,7 @@ docker compose up -d
 **Combined stack** (also start the bundled OME):
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/JuthX/ome-console.git
 cd ome-console
 cp .env.example .env
 # edit .env: uncomment COMPOSE_PROFILES=with-ome, set OME_HOST_IP
