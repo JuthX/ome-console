@@ -16,6 +16,13 @@
 	    reason as above.
 	  - Applications/app/Publishers: added Thumbnail.
 	  - OutputProfile/Encodes: added an Image (jpeg) encode so Thumbnail has something to render.
+
+	Running the console against a separate, already-existing OME instance
+	instead of this bundled one ("console-only" mode — see README.md's "Two
+	ways to run this")? This file is exactly what needs porting into that
+	instance's own config: at minimum <Managers><API><AccessToken>, and for
+	AdmissionWebhooks/SignedPolicy/alerting to work, matching
+	<AdmissionWebhooks>/<SignedPolicy> <SecretKey> values too.
 -->
 <Server version="8">
 	<Name>OvenMediaEngine</Name>

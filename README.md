@@ -59,10 +59,17 @@ Contributions are accepted under a Contributor License Agreement
 
 ## Deployment
 
+### Two ways to run this
+
+- **Console-only (default).** Nothing in this repo starts an OvenMediaEngine instance for you — bring your own already-running OME and point the console at it. You'll need to copy this repo's `ome/conf/Server.xml` `<Managers><API><AccessToken>` (and, for AdmissionWebhooks/SignedPolicy/alerting to work, its `<AdmissionWebhooks>`/`<SignedPolicy>` `<SecretKey>` values too) into your own OME's config — the console can't manage an instance that doesn't have this wiring.
+- **Combined stack (optional).** Set `COMPOSE_PROFILES=with-ome` in `.env` and `docker compose up -d` also starts a bundled, pre-wired `ome` service straight from this repo — no manual config-porting needed. Recommended if you don't already run OvenMediaEngine.
+
+Both modes share the same setup wizard, prerequisites, and update/backup steps below.
+
 ### Prerequisites
 
 - Docker and Docker Compose.
-- A reverse proxy in front of both services for real TLS (any of Nginx Proxy Manager, Caddy, Traefik — this repo's `docker-compose.yml` assumes one exists but doesn't include one).
+- A reverse proxy in front of the console for real TLS (any of Nginx Proxy Manager, Caddy, Traefik — this repo's `docker-compose.yml` assumes one exists but doesn't include one). Combined-stack mode fronts OME too.
 - A Docker network your reverse proxy and this stack both join, literally named `proxy`:
   ```bash
   docker network create proxy
@@ -71,17 +78,30 @@ Contributions are accepted under a Contributor License Agreement
 
 ### First install
 
+**Console-only** (bring your own OME — see above for the config it needs):
+
 ```bash
 git clone <this-repo-url>
 cd ome-console
 cp .env.example .env
+# edit .env: OME_API_BASE_URL, OME_MEDIA_BASE_URL, OME_ACCESS_TOKEN
 docker compose up -d
 ```
 
-Then visit `https://<your-console-domain>/setup` (or `http://localhost:3000/setup` for local testing) — a one-time wizard walks you through:
+**Combined stack** (also start the bundled OME):
+
+```bash
+git clone <this-repo-url>
+cd ome-console
+cp .env.example .env
+# edit .env: uncomment COMPOSE_PROFILES=with-ome, set OME_HOST_IP
+docker compose up -d
+```
+
+Either way, then visit `https://<your-console-domain>/setup` (or `http://localhost:3000/setup` for local testing) — a one-time wizard walks you through:
 
 1. Creating your first (Engineer) account.
-2. Connecting to this host's OvenMediaEngine instance — host IP/domain is optional (leave it blank for local-only testing; set it for real before going live, since WebRTC playback needs it for viewers off this host), and you can either paste an access token or let the wizard generate one.
+2. Connecting to your OvenMediaEngine instance — host IP/domain is optional (leave it blank for local-only testing; set it for real before going live, since WebRTC playback needs it for viewers off this host), and you can either paste an access token or let the wizard generate one.
 3. Naming your vhost/app (defaults match OME's own `default`/`app`).
 4. Generating the session-signing and access-control secrets the console needs — strong, random, never hand-typed.
 5. Optionally configuring SMTP for alert emails (skippable — there's also a real settings page for this later, under Statistics & alerts).
@@ -99,7 +119,7 @@ docker compose build console
 docker compose up -d
 ```
 
-`ome` only needs rebuilding/restarting if you changed `ome/conf/Server.xml` or `.env` values it reads — the console picks up code changes on every `docker compose build console`.
+In combined-stack mode, `ome` only needs rebuilding/restarting if you changed `ome/conf/Server.xml` or `.env` values it reads — the console picks up code changes on every `docker compose build console`.
 
 ### Backups
 
@@ -109,7 +129,7 @@ See [BACKUP.md](BACKUP.md) for the backup script and restore procedure.
 
 - `ome/` — OvenMediaEngine's own config (`conf/Server.xml`, `conf/Logger.xml`), mounted read-only into the `ome` container.
 - `console/` — the Next.js 16 app (App Router, TypeScript) that is this whole project's UI and API.
-- `docker-compose.yml` / `.env` — the whole stack: OME + the console.
+- `docker-compose.yml` / `.env` — the console, plus an optional bundled OME (see "Two ways to run this" under Deployment).
 
 The two containers are named `ome` and `console` — generic names that could collide if another stack on the same host already uses them. Rename them in `docker-compose.yml`'s `container_name:` fields if that happens; `docker compose up -d` will otherwise fail with a clear "container name already in use" error, not something silent.
 

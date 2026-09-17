@@ -5,6 +5,15 @@ services:
     image: airensoft/ovenmediaengine:${OME_IMAGE_TAG:?err}
     container_name: ome
     restart: unless-stopped
+    # Optional: this service only starts when the "with-ome" profile is
+    # active (`docker compose --profile with-ome up -d`, or set
+    # COMPOSE_PROFILES=with-ome in .env — Compose reads that the same way it
+    # resolves ${VAR} substitutions below). Default (no profile) is
+    # console-only: bring your own already-running OvenMediaEngine instead,
+    # pointing console's OME_API_BASE_URL/OME_MEDIA_BASE_URL/OME_ACCESS_TOKEN
+    # at it. See README.md's "Two ways to run this" for both paths.
+    profiles:
+      - with-ome
     environment:
       # Left blank-tolerant (not `:?err`) so a first `docker compose up -d`
       # with an empty .env still starts the stack — the console's /setup
@@ -116,8 +125,12 @@ services:
     container_name: console
     restart: unless-stopped
     environment:
-      OME_API_BASE_URL: http://ome:8081
-      OME_MEDIA_BASE_URL: http://ome:3333
+      # Defaults match the bundled "with-ome" profile's internal Docker DNS
+      # name. Console-only mode (no "with-ome" profile, bringing your own
+      # already-running OME elsewhere) overrides both in .env to point at
+      # that instance's real address instead.
+      OME_API_BASE_URL: ${OME_API_BASE_URL:-http://ome:8081}
+      OME_MEDIA_BASE_URL: ${OME_MEDIA_BASE_URL:-http://ome:3333}
       # Same fallback as the ome service above — keeps the two in sync by
       # default (both default to "changeme") until the setup wizard writes a
       # real one to .env for both to pick up on the next restart.
@@ -170,8 +183,12 @@ services:
     networks:
       - internal
       - proxy
-    depends_on:
-      - ome
+    # No depends_on: `ome` is profile-gated (see above) and may not exist in
+    # this run's config at all in console-only mode. When both are active
+    # (the "with-ome" profile), the console already has to tolerate OME
+    # being transiently unreachable at runtime regardless (verified: the
+    # poller/UI degrade to an "unreachable" state rather than crashing), so
+    # losing strict start-ordering here isn't a new failure mode.
 
 networks:
   internal:
