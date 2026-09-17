@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/better-sqlite3": "^9.6.0",
-    "@types/node": "^24",
+    "@types/node": "^26",
     "@types/nodemailer": "^8.0.1",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
