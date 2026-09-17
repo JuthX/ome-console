@@ -1,7 +1,7 @@
 # node:24-slim (glibc), not -alpine: Next.js's own SWC/Turbopack native
 # bindings only ship glibc builds, so npm install must run on the same libc
 # as the final runtime or the build's native bindings won't load at runtime.
-FROM node:24-slim AS deps
+FROM node:26-slim AS deps
 WORKDIR /app
 # better-sqlite3/bcrypt ship prebuilt binaries for common platforms, but
 # fall back to compiling from source if none matches — keep the toolchain
@@ -11,13 +11,13 @@ RUN apt-get update -qq && apt-get install -y -qq python3 make g++ \
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:24-slim AS builder
+FROM node:26-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:24-slim AS runner
+FROM node:26-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 # Docker auto-sets HOSTNAME to the container ID; Next's standalone server.js
